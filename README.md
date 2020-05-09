@@ -5,7 +5,7 @@ This is a Burp Extension to paste your snippets. You can make snippets list with
 ## DEMO
 
 <div align="center">
-    <img src="https://raw.github.com/wiki/howmuch515/BurpSnippets/images/demo.gif" title="demo">
+    <img src="https://user-images.githubusercontent.com/10630083/81477297-ffcf3f80-9251-11ea-964c-74c0cef9e192.gif" title="demo">
 </div>
 
 ## Requirement
