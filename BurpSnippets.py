@@ -1,12 +1,24 @@
 from burp import IBurpExtender, IRequestInfo, IContextMenuFactory
 from java.io import PrintWriter
 from javax.swing import JMenu, JMenuItem, JFileChooser
+from java.lang import String
 
 # File I/O
 from java.io import File, FileOutputStream
+from java.io import FileInputStream, BufferedReader, InputStreamReader
 
 # Path
 from java.net import URI
+
+import json
+import jarray
+from java.lang import Object as javaObject
+from java.awt import Toolkit
+from java.awt.datatransfer import Clipboard
+from java.awt.datatransfer import StringSelection
+
+# snippets file path.
+SNIPPETS_FILE_PATH = "snippets.json"
 
 
 class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
@@ -24,15 +36,78 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
 
         # write a message to the Burp alerts tab
         callbacks.issueAlert("Installed BurpSnippets.")
+        print(type(b'abc'))
+        hoge = u'abc'
+        print(type(hoge))
+        fuga = hoge.decode('utf-8')
+        print(type(fuga))
+
+    def debug(self, msg):
+        self._stdout.println("[debug]" + msg)
 
     def createMenuItems(self, invocation):
         menu = JMenu(self._actionName)
-        self._menu_item = JMenuItem("snippets",
-                                    None,
-                                    actionPerformed=lambda x,
-                                    inv=invocation: self.Action(inv),)
-        menu.add(self._menu_item)
+
+        file_path = SNIPPETS_FILE_PATH
+        snippets_data = self.convertJson2Map(file_path)
+
+        for i in snippets_data:
+            type_menu = JMenu(i["type"])
+            for j in i["items"]:
+                key = j["key"]
+                payload = j["value"]
+
+                a = JMenuItem(
+                    key,
+                    None,
+                    actionPerformed=self.generateClickAction(invocation, payload),
+                )
+                type_menu.add(a)
+            menu.add(type_menu)
         return [menu]
+
+    def generateClickAction(self, invocation, payload):
+
+        def click_action(self):
+            # Copy payload to clipboard
+            kit = Toolkit.getDefaultToolkit()
+            clip = kit.getSystemClipboard()
+
+            ss = StringSelection(payload)
+            clip.setContents(ss, None)
+
+            # Paste payload to text area
+            selectedIndex = invocation.getSelectionBounds()
+
+            req = invocation.getSelectedMessages()[0]
+            request = req.getRequest()
+
+            # convert list.
+            request_list = list(request)
+            # print("request_list(type:{}) {}".format(type(request_list), request_list))
+
+            payload_list = map(ord, bytes(payload))
+            # print("payload_list(type:{}) {}".format(type(payload_list), payload_list))
+
+            # remove selected strings.
+            del request_list[selectedIndex[0]: selectedIndex[1]]
+
+            request_list[selectedIndex[0]: selectedIndex[0]] = payload_list
+            # request = jarray.array(request_list, javaObject)
+            print(request_list)
+            request = jarray.array(request_list, "b")
+            print("===")
+            print(type(request))
+            print(request)
+
+            req.setRequest(request)
+
+        return click_action
+
+    def convertJson2Map(self, file_path):
+        with open(file_path, "r") as f:
+            result = json.load(f)
+        return result
 
     def Action(self, invocation):
         try:
@@ -55,9 +130,7 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
             while len(http_traffic) > 0:
                 counter += 1
                 target_traffic = http_traffic.pop()
-                analyzedRequest = self._helpers.analyzeRequest(
-                    target_traffic
-                )
+                analyzedRequest = self._helpers.analyzeRequest(target_traffic)
                 analyzedResponse = self._helpers.analyzeResponse(
                     target_traffic.getResponse()
                 )
@@ -78,11 +151,10 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
 
                 # check extention.
                 if not self.has_extention(file_name):
-                    ex = self.guess_extention(mime_type,
-                                              target_traffic.getResponse())
+                    ex = self.guess_extention(mime_type, target_traffic.getResponse())
                     file_name = file_name + "." + ex
 
-                file_path = self._output_dir + u"/" + file_name.encode('utf-8')
+                file_path = self._output_dir + u"/" + file_name.encode("utf-8")
                 self._stdout.printf("[%d/%d]\n", counter, traffic_length)
                 self._stdout.printf("url: %s\n", url)
                 self._stdout.printf("status_code: %d\n", status_code)
@@ -90,9 +162,7 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
                 self._stdout.printf("body_offset: %d\n", body_offset)
 
                 # extract object
-                self.extract_obj(file_path,
-                                 target_traffic.getResponse(),
-                                 body_offset)
+                self.extract_obj(file_path, target_traffic.getResponse(), body_offset)
 
             self._stdout.printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n\n")
 
@@ -102,7 +172,7 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
 
     def extract_filename(self, url):
         uri = url.toURI()
-        path = uri.getPath().encode('utf-8')
+        path = uri.getPath().encode("utf-8")
         file_name = path.split(u"/")[-1]
         return file_name
 
@@ -155,7 +225,7 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
             fos = FileOutputStream(f)
 
             fos.write(res[offset:])
-            self._stdout.printf("save as \"%s\".\n\n", f.getPath())
+            self._stdout.printf('save as "%s".\n\n', f.getPath())
 
             fos.close()
 

