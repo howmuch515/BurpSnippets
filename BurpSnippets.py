@@ -5,13 +5,7 @@ from java.lang import String
 
 # File I/O
 from java.io import File, FileOutputStream
-from java.io import FileInputStream, BufferedReader, InputStreamReader
-
-# Path
-from java.net import URI
-
-import json
-import jarray
+import json, jarray
 from java.lang import Object as javaObject
 from java.awt import Toolkit
 from java.awt.datatransfer import Clipboard
@@ -27,7 +21,7 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
         self._helers = callbacks.getHelpers()
         self._callbacks = callbacks
         self._helpers = callbacks.getHelpers()
-        callbacks.setExtensionName("Paste a snippet")
+        callbacks.setExtensionName("BurpSnippets")
         callbacks.registerContextMenuFactory(self)
 
         # obtain our output and error streams
@@ -36,21 +30,16 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
 
         # write a message to the Burp alerts tab
         callbacks.issueAlert("Installed BurpSnippets.")
-        print(type(b'abc'))
-        hoge = u'abc'
-        print(type(hoge))
-        fuga = hoge.decode('utf-8')
-        print(type(fuga))
-
-    def debug(self, msg):
-        self._stdout.println("[debug]" + msg)
 
     def createMenuItems(self, invocation):
         menu = JMenu(self._actionName)
 
-        file_path = SNIPPETS_FILE_PATH
-        snippets_data = self.convertJson2Map(file_path)
+        # load snippets json file.
+        snippets_data = ""
+        with open(SNIPPETS_FILE_PATH, "r") as f:
+            snippets_data = json.load(f)
 
+        # create payload menu.
         for i in snippets_data:
             type_menu = JMenu(i["type"])
             for j in i["items"]:
@@ -58,10 +47,9 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
                 payload = j["value"]
 
                 a = JMenuItem(
-                    key,
-                    None,
-                    actionPerformed=self.generateClickAction(invocation, payload),
-                )
+                    key, None,
+                    actionPerformed=self.generateClickAction(
+                        invocation, payload),)
                 type_menu.add(a)
             menu.add(type_menu)
         return [menu]
@@ -78,157 +66,19 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
 
             # Paste payload to text area
             selectedIndex = invocation.getSelectionBounds()
-
             req = invocation.getSelectedMessages()[0]
             request = req.getRequest()
 
-            # convert list.
+            # convert data into bytes list.
             request_list = list(request)
-            # print("request_list(type:{}) {}".format(type(request_list), request_list))
-
             payload_list = map(ord, bytes(payload))
-            # print("payload_list(type:{}) {}".format(type(payload_list), payload_list))
 
-            # remove selected strings.
+            # insert payload.
             del request_list[selectedIndex[0]: selectedIndex[1]]
-
             request_list[selectedIndex[0]: selectedIndex[0]] = payload_list
-            # request = jarray.array(request_list, javaObject)
-            print(request_list)
-            request = jarray.array(request_list, "b")
-            print("===")
-            print(type(request))
-            print(request)
 
+            # override request.
+            request = jarray.array(request_list, "b")
             req.setRequest(request)
 
         return click_action
-
-    def convertJson2Map(self, file_path):
-        with open(file_path, "r") as f:
-            result = json.load(f)
-        return result
-
-    def Action(self, invocation):
-        try:
-            http_traffic = invocation.getSelectedMessages()
-            traffic_length = len(http_traffic)
-            counter = 0
-            self._output_dir = u"/tmp"
-
-            # choose output directory
-            filechooser = JFileChooser()
-            filechooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
-
-            selected = filechooser.showSaveDialog(self._menu_item)
-            if selected == JFileChooser.APPROVE_OPTION:
-                f = filechooser.getSelectedFile()
-                self._output_dir = f.getAbsolutePath()
-
-            self._stdout.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
-            while len(http_traffic) > 0:
-                counter += 1
-                target_traffic = http_traffic.pop()
-                analyzedRequest = self._helpers.analyzeRequest(target_traffic)
-                analyzedResponse = self._helpers.analyzeResponse(
-                    target_traffic.getResponse()
-                )
-
-                status_code = analyzedResponse.getStatusCode()
-                mime_type = analyzedResponse.getStatedMimeType()
-                url = analyzedRequest.getUrl()
-                body_offset = analyzedResponse.getBodyOffset()
-
-                # Skip empty response.
-                if len(target_traffic.getResponse()[body_offset:]) <= 0:
-                    self._stdout.printf("[%d/%d]\n", counter, traffic_length)
-                    self._stdout.println("[-] %s's response is empty.", url)
-                    continue
-
-                # resolve filename from url.
-                file_name = self.extract_filename(url)
-
-                # check extention.
-                if not self.has_extention(file_name):
-                    ex = self.guess_extention(mime_type, target_traffic.getResponse())
-                    file_name = file_name + "." + ex
-
-                file_path = self._output_dir + u"/" + file_name.encode("utf-8")
-                self._stdout.printf("[%d/%d]\n", counter, traffic_length)
-                self._stdout.printf("url: %s\n", url)
-                self._stdout.printf("status_code: %d\n", status_code)
-                self._stdout.printf("mime_type: %s\n", mime_type)
-                self._stdout.printf("body_offset: %d\n", body_offset)
-
-                # extract object
-                self.extract_obj(file_path, target_traffic.getResponse(), body_offset)
-
-            self._stdout.printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n\n")
-
-        except Exception as e:
-            self._stderr.println("[!] In Action.")
-            self._stderr.println(e)
-
-    def extract_filename(self, url):
-        uri = url.toURI()
-        path = uri.getPath().encode("utf-8")
-        file_name = path.split(u"/")[-1]
-        return file_name
-
-    def has_extention(self, file_name):
-        return len(file_name.split(".")) > 1
-
-    def guess_extention(self, mime, res):
-        if mime == u"JPEG":
-            return u"jpg"
-        elif mime == u"GIF":
-            return u"gif"
-        elif mime == u"PNG":
-            return u"png"
-        elif mime == u"HTML":
-            return u"html"
-        elif mime == u"JSON":
-            return u"json"
-        elif mime == u"XML":
-            return u"xml"
-        elif mime == u"scrip":
-            # Only javascript is supported.
-            return u"js"
-        elif mime == u"text":
-            return u"txt"
-        elif mime == u"image":
-            return u"ico"
-        else:
-            return u""
-
-    def extract_obj(self, file_path, res, offset):
-        try:
-            f = File(file_path)
-
-            # check same name file.
-            counter = 0
-            while True:
-
-                # The same file name is not exists.
-                if not f.exists():
-                    break
-
-                # Count up the file name.
-                counter += 1
-                stem = u"".join(file_path.split(u".")[:-1])
-                ex = file_path.split(u".")[-1]
-
-                _file_path = u"{}({}).{}".format(stem, counter, ex)
-                f = File(_file_path)
-
-            fos = FileOutputStream(f)
-
-            fos.write(res[offset:])
-            self._stdout.printf('save as "%s".\n\n', f.getPath())
-
-            fos.close()
-
-        except Exception as e:
-            self._stderr.println("[!] In extract_obj.")
-            self._stderr.println(e)
