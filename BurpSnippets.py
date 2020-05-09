@@ -1,12 +1,7 @@
 from burp import IBurpExtender, IRequestInfo, IContextMenuFactory
-from java.io import PrintWriter
-from javax.swing import JMenu, JMenuItem, JFileChooser
-from java.lang import String
-
-# File I/O
-from java.io import File, FileOutputStream
+from javax.swing import JMenu, JMenuItem
 import json, jarray
-from java.lang import Object as javaObject
+
 from java.awt import Toolkit
 from java.awt.datatransfer import Clipboard
 from java.awt.datatransfer import StringSelection
@@ -23,10 +18,6 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
         self._helpers = callbacks.getHelpers()
         callbacks.setExtensionName("BurpSnippets")
         callbacks.registerContextMenuFactory(self)
-
-        # obtain our output and error streams
-        self._stderr = PrintWriter(callbacks.getStderr(), True)
-        self._stdout = PrintWriter(callbacks.getStdout(), True)
 
         # write a message to the Burp alerts tab
         callbacks.issueAlert("Installed BurpSnippets.")
