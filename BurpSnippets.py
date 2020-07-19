@@ -1,8 +1,8 @@
 from burp import IBurpExtender, IRequestInfo, IContextMenuFactory
-from javax.swing import JMenu, JMenuItem
+from javax.swing import JMenu, JMenuItem, BorderFactory
 import json, jarray
 
-from java.awt import Toolkit
+from java.awt import Toolkit, Color
 from java.awt.datatransfer import Clipboard
 from java.awt.datatransfer import StringSelection
 
@@ -29,6 +29,14 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
         snippets_data = ""
         with open(SNIPPETS_FILE_PATH, "r") as f:
             snippets_data = json.load(f)
+
+        # create import file menu.
+        import_menu = JMenu("import file")
+        as_json_menu_item = JMenuItem("as JSON")
+
+        import_menu.add(as_json_menu_item)
+        menu.add(import_menu)
+        menu.addSeparator()
 
         # create payload menu.
         for i in snippets_data:
