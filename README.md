@@ -1,6 +1,6 @@
 # BurpSnippets
 
-This is a Burp Extension to paste your snippets. You can make snippets list with JSON like [snippets.json](./snippets.json).
+This is a Burp Extension to paste your snippets. You can make snippets list with JSON like [SNIPPETS.json](./SNIPPETS.json).
 
 ## DEMO
 
