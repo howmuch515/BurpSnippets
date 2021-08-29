@@ -1,6 +1,8 @@
 from burp import IBurpExtender, IRequestInfo, IContextMenuFactory
 from java.io import File
+from javax.swing.filechooser import FileNameExtensionFilter
 from javax.swing import JMenu, JMenuItem, JFileChooser
+
 import json, jarray
 
 from java.awt import Toolkit
@@ -31,10 +33,11 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
 
         # create import file menu.
         import_menu = JMenu("import file")
-        as_json_menu_item = JMenuItem("as JSON")
+
+        # JSON dictionary file import
+        as_json_menu_item = JMenuItem("as JSON or TOML")
         as_json_menu_item.actionPerformed = self.generateSelectFileAction(
             invocation, as_json_menu_item)
-
         import_menu.add(as_json_menu_item)
         menu.add(import_menu)
         menu.addSeparator()
@@ -108,6 +111,8 @@ class BurpExtender(IBurpExtender, IRequestInfo, IContextMenuFactory):
 
         def selectSnippetsFile(self):
             fc = JFileChooser()
+            filter = FileNameExtensionFilter("JSON or TOML", ["json", "toml"])
+            fc.setFileFilter(filter)
             result = fc.showOpenDialog(parent_component)
             if result == JFileChooser.APPROVE_OPTION:
                 f = fc.getSelectedFile()
